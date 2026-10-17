@@ -1,0 +1,14 @@
+menu "ARB Guard Configuration"
+
+config ARB_GUARD
+       bool "Enable ARB Guard (Anti ARB-fuse burn)"
+       default n
+       depends on SECURITY
+       help
+          Block all writes to /sys/kernel/dload/update_arb
+          so the ARB (Anti-Rollback) fuse can never be burned
+          by the boot HAL or malicious scripts, keeping the
+          device recoverable over EDL 9008.
+          If unsure, leave this n.
+
+endmenu
