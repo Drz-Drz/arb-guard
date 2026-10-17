@@ -4,13 +4,14 @@
  * (anti ARB-fuse burn; keep EDL 9008 alive)
  *
  * Blocks:
- *  1. open(/sys/kernel/dload/update_arb, O_WRONLY|O_RDWR)  [sysfs kernfs]
+ *  1. open(/sys/kernel/dload/update_arb, O_WRONLY|O_RDWR) [sysfs kernfs]
  *  2. write on an already-open fd (file_permission MAY_WRITE)
- *  3. bind-mount over /sys/kernel/dload/** (sb_mount)
+ *  3. bind-mount over /sys/kernel/dload/ (sb_mount)
  */
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/security.h>
+#include <linux/lsm_hooks.h>
 #include <linux/fs.h>
 #include <linux/namei.h>
 #include <linux/mount.h>
@@ -18,8 +19,6 @@
 #include <linux/version.h>
 #include <linux/errno.h>
 #include <linux/string.h>
-#include <linux/kernfs.h>
-#include <linux/sysfs.h>
 
 static bool str_has_arb(const char *p)
 {
