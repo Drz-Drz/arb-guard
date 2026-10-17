@@ -2,6 +2,7 @@
 set -eu
 
 GKI_ROOT="$(pwd)"
+ARB_REPO="${ARB_GUARD_REPO:-https://github.com/Drz-Drz/arb-guard}"
 
 echo "[+] Setting up ARB Guard (anti ARB-fuse burn)"
 
@@ -28,17 +29,16 @@ SECURITY_MAKEFILE="$SECURITY_DIR/Makefile"
 SECURITY_KCONFIG="$SECURITY_DIR/Kconfig"
 ARB_DIR="$GKI_ROOT/arb-guard"
 ARB_SYMLINK="$SECURITY_DIR/arb-guard"
-LSM_HOOKS_H="$INCLUDE_DIR/linux/lsm_hooks.h"
 
-# clone the arb-guard repo (or fall back to local source if already present)
-if [ ! -d "$ARB_DIR" ]; then
-    if [ -n "${ARB_GUARD_REPO:-}" ]; then
-        git clone --depth=1 "$ARB_GUARD_REPO" "$ARB_DIR" || true
-    fi
+# clone the arb-guard repo if not already present
+if [ ! -f "$ARB_DIR/arb_guard.c" ]; then
+    echo "[+] Cloning arb-guard from $ARB_REPO"
+    rm -rf "$ARB_DIR"
+    git clone --depth=1 "$ARB_REPO" "$ARB_DIR" || true
 fi
 
 if [ ! -f "$ARB_DIR/arb_guard.c" ]; then
-    echo '[ERROR] arb_guard.c not found; aborting.'
+    echo '[ERROR] arb_guard.c not found after clone; aborting.'
     exit 1
 fi
 
@@ -48,8 +48,9 @@ if command -v realpath >/dev/null 2>&1; then
 else
     rel="$ARB_DIR"
 fi
+[ -z "$rel" ] && rel="$ARB_DIR"
 ln -sfn "$rel" "$ARB_SYMLINK"
-echo " - symlink created"
+echo " - symlink created ($rel)"
 
 if ! grep -q 'arb-guard/arb_guard.o' "$SECURITY_MAKEFILE"; then
     printf '\nobj-$(CONFIG_ARB_GUARD) += arb-guard/\n' >> "$SECURITY_MAKEFILE"
